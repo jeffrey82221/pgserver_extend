@@ -74,8 +74,8 @@ jobs:
            src/pgserver/pginstall
           key: ${{ runner.os }}-${{ runner.arch }}-build-${{ env.cache-name }}-${{
             hashFiles('Makefile', 'pgbuild/Makefile', '.github/workflows/build-and-test.yml') }}
-      - name: Build psycopg2-binary
-        if: ${{ matrix.os != 'ubuntu-latest'}}
+      - name: Brew install postgresql
+        if: ${{ matrix.os != 'ubuntu-latest' && matrix.os != 'windows-2022' }}
         run: |
           brew install postgresql
           export CPPFLAGS="-I/opt/homebrew/opt/openssl@1.1/include"
@@ -104,6 +104,7 @@ jobs:
         with:
           path: wheelhouse/*.whl
           name: python-package-distributions
+          overwrite: true
   publish-to-pypi:
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     name: Publish Python dist to PyPI
