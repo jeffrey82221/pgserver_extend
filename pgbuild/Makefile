@@ -62,7 +62,7 @@ $(INSTALL_PREFIX)/lib/vector.so: $(PGVECTOR_DIR)/Makefile $(INSTALL_PREFIX)/bin/
 pgvector: postgres $(INSTALL_PREFIX)/lib/vector.so
 
 ### age
-AGE_TAG := v0.8.0
+AGE_TAG := 1.5.0
 AGE_URL := https://github.com/apache/age/archive/refs/tags/apache-age-$(AGE_TAG)-src.tar.gz
 AGE_DIR := age-$(AGE_TAG)
 
