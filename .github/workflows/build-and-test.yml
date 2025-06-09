@@ -41,7 +41,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade cibuildwheel
       - name: Build postgres and pgvector
-        if: ${{ matrix.os != 'ubuntu-latest' }}
+        # if {{ matrix.os != 'ubuntu-latest' }}
         env:
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment-target }}
         # this step is implied by Build wheels, but we do it here for caching before python tests run
