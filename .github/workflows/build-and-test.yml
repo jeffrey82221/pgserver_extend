@@ -62,11 +62,10 @@ jobs:
           brew install postgresql
           export CPPFLAGS="-I/opt/homebrew/opt/openssl@1.1/include"
           export LDFLAGS="-L/opt/homebrew/opt/openssl@1.1/lib -L${HOME}/.pyenv/versions/3.8.10/lib"
-      - name: Install Flex
+      - name: Install AGE Dependencies
         if: ${{ matrix.os == 'ubuntu-latest'  }}
         run: |
-          sudo apt-get install flex
-          ./configure
+          sudo apt-get install build-essential libreadline-dev zlib1g-dev flex bison
       - name: Build wheels
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
