@@ -66,6 +66,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest'  }}
         run: |
           sudo apt-get install flex
+          ./configure
       - name: Build wheels
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
