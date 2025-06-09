@@ -3,7 +3,7 @@ INSTALL_PREFIX := $(shell pwd)/../src/pgserver/pginstall/
 BUILD := $(shell pwd)/pgbuild/
 
 .PHONY: all
-all: pgvector postgres
+all: pgvector age postgres
 
 ### postgres
 POSTGRES_VERSION := 16.2
