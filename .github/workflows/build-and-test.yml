@@ -62,6 +62,10 @@ jobs:
           brew install postgresql
           export CPPFLAGS="-I/opt/homebrew/opt/openssl@1.1/include"
           export LDFLAGS="-L/opt/homebrew/opt/openssl@1.1/lib -L${HOME}/.pyenv/versions/3.8.10/lib"
+      - name: Install Flex
+        if: ${{ matrix.os == 'ubuntu-latest'  }}
+        run: |
+          apt-get install flex
       - name: Build wheels
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
