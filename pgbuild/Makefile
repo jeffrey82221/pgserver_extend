@@ -72,6 +72,7 @@ $(AGE_DIR)/Makefile: $(AGE_DIR).tar.gz
 	# tar extract into age-$(AGE_TAG)
 	mkdir -p $(AGE_DIR)
 	tar xzf $(AGE_DIR).tar.gz -C $(AGE_DIR) --strip-components=1
+	ls -R $(AGE_DIR)
 	touch $(AGE_DIR)/Makefile
 
 $(INSTALL_PREFIX)/lib/age.so: $(AGE_DIR)/Makefile $(INSTALL_PREFIX)/bin/postgres
