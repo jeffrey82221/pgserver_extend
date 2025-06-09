@@ -92,7 +92,7 @@ jobs:
            src/pgserver/pginstall
           key: ${{ runner.os }}-${{ runner.arch }}-build-${{ env.cache-name }}-${{
             hashFiles('Makefile', 'pgbuild/Makefile', '.github/workflows/build-and-test.yml') }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: wheelhouse/*.whl
           name: python-package-distributions
@@ -109,7 +109,7 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
     steps:
         - name: Download all the dists
-          uses: actions/download-artifact@v3
+          uses: actions/download-artifact@v4
           with:
             name: python-package-distributions
             path: dist/
