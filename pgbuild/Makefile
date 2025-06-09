@@ -61,6 +61,29 @@ $(INSTALL_PREFIX)/lib/vector.so: $(PGVECTOR_DIR)/Makefile $(INSTALL_PREFIX)/bin/
 .PHONY: pgvector
 pgvector: postgres $(INSTALL_PREFIX)/lib/vector.so
 
+### age
+AGE_TAG := 1.5.0
+AGE_URL := https://github.com/apache/age/archive/refs/tags/apache-age-$(AGE_TAG)-src.tar.gz
+AGE_DIR := age-$(AGE_TAG)
+
+$(AGE_DIR).tar.gz:
+	curl -L -o $(AGE_DIR).tar.gz $(AGE_URL)
+
+$(AGE_DIR)/Makefile: $(AGE_DIR).tar.gz
+	# tar extract into age-$(AGE_TAG)
+	mkdir -p $(AGE_DIR)
+	tar xzf $(AGE_DIR).tar.gz -C $(AGE_DIR) --strip-components=1
+	touch $(AGE_DIR)/Makefile
+
+$(INSTALL_PREFIX)/lib/age.so: $(AGE_DIR)/Makefile $(INSTALL_PREFIX)/bin/postgres
+	unset MAKELEVEL && unset MAKEFLAGS && unset MFLAGS \
+		&& export PG_CONFIG=$(INSTALL_PREFIX)/bin/pg_config \
+		&& $(MAKE) -C $(AGE_DIR) -j \
+		&& $(MAKE) -C $(AGE_DIR) install
+
+.PHONY: age
+age: postgres $(INSTALL_PREFIX)/lib/age.so
+
 ### other
 .PHONY: clean clean-all
 clean:
@@ -68,6 +91,7 @@ clean:
 	rm -rf $(POSTGRES_SRC)
 	rm -rf $(POSTGRES_BLD)
 	rm -rf $(PGVECTOR_DIR)
+	rm -rf $(AGE_DIR)
 
 clean-all: clean
 	rm -rf *.tar.gz
