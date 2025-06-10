@@ -3,7 +3,7 @@ INSTALL_PREFIX := $(shell pwd)/../src/pgserver/pginstall/
 BUILD := $(shell pwd)/pgbuild/
 
 .PHONY: all
-all: pgvector postgres
+all: pgvector age postgres
 
 ### postgres
 POSTGRES_VERSION := 16.2
@@ -62,10 +62,9 @@ $(INSTALL_PREFIX)/lib/vector.so: $(PGVECTOR_DIR)/Makefile $(INSTALL_PREFIX)/bin/
 pgvector: postgres $(INSTALL_PREFIX)/lib/vector.so
 
 ### age
-AGE_TAG := 1.5.0
-AGE_URL := https://github.com/apache/age/archive/refs/tags/apache-age-$(AGE_TAG)-src.tar.gz
+AGE_TAG := v1.5.0
+AGE_URL := https://github.com/apache/age/archive/refs/tags/PG16/$(AGE_TAG)-rc0.tar.gz
 AGE_DIR := age-$(AGE_TAG)
-
 $(AGE_DIR).tar.gz:
 	curl -L -o $(AGE_DIR).tar.gz $(AGE_URL)
 

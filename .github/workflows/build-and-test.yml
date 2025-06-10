@@ -16,18 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-12
-            arch: x86_64
-            deployment-target: '10.9'
           - os: macos-latest
             arch: arm64
             deployment-target: '11.0'
-          - os: ubuntu-latest
-            arch: x86_64
-            deployment-target: ''
-          - os: windows-2022
-            arch: AMD64
-            deployment-target: ''
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
@@ -38,32 +29,20 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
           # for testing due to docker env issues
         with:
-          python-version: '3.10'
+          python-version: '3.11'
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade cibuildwheel
-      - name: Restore postgres build from cache
+      - name: Build postgres, pgvector, and age
         if: ${{ matrix.os != 'ubuntu-latest' }}
-        id: restore-postgres
-        uses: actions/cache/restore@v3
-        env:
-          cache-name: cache-postgres
-        with:
-          path: |
-            pgbuild
-            src/pgserver/pginstall
-          key: ${{ runner.os }}-${{ runner.arch }}-build-${{ env.cache-name }}-${{
-            hashFiles('Makefile', 'pgbuild/Makefile', '.github/workflows/build-and-test.yml') }}
-      - name: Build postgres and pgvector
-        if: ${{ matrix.os != 'ubuntu-latest' && ! steps.restore-postgres.outputs.cache-hit }}
         env:
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment-target }}
         # this step is implied by Build wheels, but we do it here for caching before python tests run
         # on ubuntu, cibuildwheel will run this step within a docker container, so it cannot use the cache this way
         run: make
       - name: Save postgres build
-        if: ${{ matrix.os != 'ubuntu-latest' && ! steps.restore-postgres.outputs.cache-hit }}
+        if: ${{ matrix.os != 'ubuntu-latest' }}
         id: cache-postgres
         uses: actions/cache/save@v3
         env:
@@ -80,6 +59,10 @@ jobs:
           brew install postgresql
           export CPPFLAGS="-I/opt/homebrew/opt/openssl@1.1/include"
           export LDFLAGS="-L/opt/homebrew/opt/openssl@1.1/lib -L${HOME}/.pyenv/versions/3.8.10/lib"
+      - name: Install AGE Dependencies
+        if: ${{ matrix.os == 'ubuntu-latest'  }}
+        run: |
+          sudo apt-get install build-essential libreadline-dev zlib1g-dev flex bison
       - name: Build wheels
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
@@ -89,7 +72,7 @@ jobs:
           python -m pip install psycopg2-binary
           python -m cibuildwheel --output-dir wheelhouse
       - name: Save postgres build
-        if: ${{ matrix.os == 'ubuntu-latest' && ! steps.restore-postgres.outputs.cache-hit }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         id: cache-postgres2
         uses: actions/cache/save@v3
         env:
