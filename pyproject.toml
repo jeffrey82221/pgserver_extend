@@ -1,11 +1,11 @@
 [project]
-name = "pgserver" # Required
-version = "0.1.4"  # Required
+name = "pgserver-extend" # Required
+version = "0.0.1"  # Required
 description = "Self-contained postgres server for your python applications" # Required
 readme = "README.md" # Optional
 requires-python = ">=3.9"
 license = {file = "LICENSE.txt"}
-urls={repository="https://github.com/orm011/pgserver"}
+urls={repository="https://github.com/jeffrey82221/pgserver_extend"}
 authors=[{ name="Oscar Moll", email="orm@csail.mit.edu" }]
 keywords=["postgresql", "pgvector", "pgserver", "rag", "age"]
 dependencies = [
