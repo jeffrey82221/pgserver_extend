@@ -89,7 +89,7 @@ jobs:
           name: python-package-distributions
           overwrite: true
   publish-to-pypi:
-    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    # if: ${{ startsWith(github.ref, 'refs/tags/') }}
     name: Publish Python dist to PyPI
     needs:
       - build_wheels
