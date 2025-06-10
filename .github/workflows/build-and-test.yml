@@ -19,9 +19,6 @@ jobs:
           - os: macos-latest
             arch: arm64
             deployment-target: '11.0'
-          - os: ubuntu-latest
-            arch: x86_64
-            deployment-target: ''
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
