@@ -7,6 +7,7 @@ import multiprocessing as mp
 import shutil
 from pathlib import Path
 import pgserver.utils
+import pgserver.postgres_server as postgres_server
 import socket
 from pgserver.utils import find_suitable_port, process_is_running
 import psutil
@@ -16,6 +17,23 @@ import datetime
 from sqlalchemy_utils import database_exists, create_database
 import logging
 import os
+
+def test_preload_libraries_args_uses_postgres_library_directory(tmp_path, monkeypatch):
+    configured_prefix = tmp_path / 'build' / 'pginstall'
+    lib_dir = configured_prefix / 'lib' / 'postgresql' / '16'
+    lib_dir.mkdir(parents=True)
+    (lib_dir / 'pg_textsearch.so').touch()
+    monkeypatch.setattr(postgres_server, 'POSTGRES_BIN_PATH', tmp_path / 'installed' / 'pginstall' / 'bin')
+    pg_config_values = {
+        '--prefix': configured_prefix,
+        '--pkglibdir': lib_dir,
+    }
+    monkeypatch.setattr(postgres_server, 'pg_config', lambda args: f'{pg_config_values[args[0]]}\n')
+
+    assert postgres_server._preload_libraries_args() == [
+        '-o', '-c shared_preload_libraries=pg_textsearch'
+    ]
+
 
 def _check_sqlalchemy_works(srv : pgserver.PostgresServer):
     database_name = 'testdb'
