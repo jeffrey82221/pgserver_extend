@@ -406,7 +406,9 @@ def _create_extension(pg, name, *, cascade=False):
 
 @pytest.mark.skipif(sys.platform == "win32", reason="AGE is not built on Windows")
 def test_age(tmp_postgres):
-    _create_extension(tmp_postgres, "age")
+    # AGE is always built on Linux/macOS, so no availability skip here
+    ret = tmp_postgres.psql("CREATE EXTENSION age;")
+    assert ret.strip() == "CREATE EXTENSION"
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="pgsql-http is not built on Windows")
