@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-12
+          - os: macos-15-intel
             arch: x86_64
             deployment-target: '10.9'
           - os: macos-latest
@@ -54,7 +54,7 @@ jobs:
       - name: Save postgres build
         if: ${{ matrix.os != 'ubuntu-latest' }}
         id: cache-postgres
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         env:
           cache-name: cache-postgres
         with:
@@ -86,7 +86,7 @@ jobs:
       - name: Save postgres build
         if: ${{ matrix.os == 'ubuntu-latest' }}
         id: cache-postgres2
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         env:
           cache-name: cache-postgres
         with:
@@ -98,7 +98,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: wheelhouse/*.whl
-          name: python-package-distributions
+          name: python-package-distributions-${{ matrix.os }}
           overwrite: true
   publish-to-pypi:
     if: ${{ github.event_name != 'pull_request' }}
@@ -115,7 +115,8 @@ jobs:
         - name: Download all the dists
           uses: actions/download-artifact@v4
           with:
-            name: python-package-distributions
+            pattern: python-package-distributions-*
+            merge-multiple: true
             path: dist/
         - name: Publish distribution 📦 to PyPI
           uses: pypa/gh-action-pypi-publish@release/v1
