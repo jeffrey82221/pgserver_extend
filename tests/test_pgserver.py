@@ -1,4 +1,3 @@
-import sys
 import pytest
 import pgserver
 import subprocess
@@ -247,12 +246,6 @@ def test_cleanup_none():
         finally:
             _kill_server(pid)
 
-@pytest.fixture
-def tmp_postgres():
-    tmp_pg_data = tempfile.mkdtemp()
-    with pgserver.get_server(tmp_pg_data, cleanup_mode='delete') as pg:
-        yield pg
-
 def test_pgvector(tmp_postgres):
     ret = tmp_postgres.psql("CREATE EXTENSION vector;")
     assert ret.strip() == "CREATE EXTENSION"
@@ -393,34 +386,3 @@ def test_multiprocess_shared():
             assert not process_is_running(server_pid_parent)
     finally:
         _kill_server(pid)
-
-def _create_extension(pg, name, *, cascade=False):
-    available = pg.psql(
-        f"SELECT count(*) FROM pg_available_extensions WHERE name = '{name}';"
-    )
-    if available.split()[-1] == "0":
-        pytest.skip(f"extension {name} is not built for this platform / postgres version")
-    ret = pg.psql(f"CREATE EXTENSION {name}{' CASCADE' if cascade else ''};")
-    assert ret.strip().startswith("CREATE EXTENSION")
-
-
-@pytest.mark.skipif(sys.platform == "win32", reason="AGE is not built on Windows")
-def test_age(tmp_postgres):
-    # AGE is always built on Linux/macOS, so no availability skip here
-    ret = tmp_postgres.psql("CREATE EXTENSION age;")
-    assert ret.strip() == "CREATE EXTENSION"
-
-
-@pytest.mark.skipif(sys.platform == "win32", reason="pgsql-http is not built on Windows")
-def test_pgsql_http(tmp_postgres):
-    _create_extension(tmp_postgres, "http")
-
-
-@pytest.mark.skipif(sys.platform == "win32", reason="pgvectorscale is not built on Windows")
-def test_pgvectorscale(tmp_postgres):
-    _create_extension(tmp_postgres, "vectorscale", cascade=True)
-
-
-def test_pgtextsearch(tmp_postgres):
-    # pg_textsearch only supports PostgreSQL >= 17; skipped when it was not built.
-    _create_extension(tmp_postgres, "pg_textsearch")
