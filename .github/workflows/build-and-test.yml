@@ -44,6 +44,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade cibuildwheel
+      - name: Install flex and bison for AGE (Windows)
+        if: ${{ matrix.os == 'windows-2022' }}
+        run: C:\msys64\usr\bin\pacman.exe -Sy --noconfirm --needed flex bison
       - name: Build postgres, pgvector, and age
         if: ${{ matrix.os != 'ubuntu-latest' }}
         env:

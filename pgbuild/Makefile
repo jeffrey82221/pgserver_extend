@@ -3,12 +3,7 @@ INSTALL_PREFIX := $(shell pwd)/../src/pgserver/pginstall/
 BUILD := $(shell pwd)/pgbuild/
 
 .PHONY: all
-# AGE uses POSIX-only APIs (strndup, clock_gettime) and does not build on Windows (MinGW)
-ifeq ($(OS),Windows_NT)
-all: pgvector postgres
-else
 all: pgvector age postgres
-endif
 
 ### postgres
 POSTGRES_VERSION := 16.2
@@ -70,6 +65,13 @@ pgvector: postgres $(INSTALL_PREFIX)/lib/vector.so
 AGE_TAG := v1.5.0
 AGE_URL := https://github.com/apache/age/archive/refs/tags/PG16/$(AGE_TAG)-rc0.tar.gz
 AGE_DIR := age-$(AGE_TAG)
+ifeq ($(OS),Windows_NT)
+# AGE does not build on MinGW as-is: patch it, and use the flex/bison from msys2
+# (installed with pacman; appended to PATH so it never shadows the mingw/git tools)
+AGE_PATCH := bash ./patch_age_windows.sh $(AGE_DIR)
+AGE_ENV := export PATH="$$PATH:/c/msys64/usr/bin" &&
+AGE_MAKE_ARGS := FLEX=flex BISON=bison
+endif
 $(AGE_DIR).tar.gz:
 	curl -L -o $(AGE_DIR).tar.gz $(AGE_URL)
 
@@ -77,13 +79,14 @@ $(AGE_DIR)/Makefile: $(AGE_DIR).tar.gz
 	# tar extract into age-$(AGE_TAG)
 	mkdir -p $(AGE_DIR)
 	tar xzf $(AGE_DIR).tar.gz -C $(AGE_DIR) --strip-components=1
+	$(AGE_PATCH)
 	touch $(AGE_DIR)/Makefile
 
 $(INSTALL_PREFIX)/lib/age.so: $(AGE_DIR)/Makefile $(INSTALL_PREFIX)/bin/postgres
 	unset MAKELEVEL && unset MAKEFLAGS && unset MFLAGS \
-		&& export PG_CONFIG=$(INSTALL_PREFIX)/bin/pg_config \
-		&& $(MAKE) -C $(AGE_DIR) -j \
-		&& $(MAKE) -C $(AGE_DIR) install
+		&& $(AGE_ENV) export PG_CONFIG=$(INSTALL_PREFIX)/bin/pg_config \
+		&& $(MAKE) -C $(AGE_DIR) $(AGE_MAKE_ARGS) -j \
+		&& $(MAKE) -C $(AGE_DIR) $(AGE_MAKE_ARGS) install
 
 .PHONY: age
 age: postgres $(INSTALL_PREFIX)/lib/age.so
