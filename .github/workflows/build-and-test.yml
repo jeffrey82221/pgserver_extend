@@ -51,14 +51,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade cibuildwheel
 
-      # ---- toolchain needed by the AGE extension (parser generators) ----
-      - name: Install flex and bison (Windows)
-        if: runner.os == 'Windows'
-        run: C:\msys64\usr\bin\pacman.exe -Sy --noconfirm --needed flex bison
-
       # ---- macOS / Windows: build natively so failures show up early ----
       # On Linux cibuildwheel builds inside a manylinux docker container (see CIBW_BEFORE_ALL_LINUX).
-      - name: Build postgres, pgvector and age
+      - name: Build PostgreSQL and supported extensions
         if: runner.os != 'Linux'
         env:
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment-target }}
