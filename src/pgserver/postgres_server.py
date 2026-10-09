@@ -9,7 +9,7 @@ import platform
 import psutil
 import time
 
-from ._commands import POSTGRES_BIN_PATH, initdb, pg_ctl
+from ._commands import POSTGRES_BIN_PATH, initdb, pg_config, pg_ctl
 from .utils import find_suitable_port, find_suitable_socket_dir, DiskList, PostmasterInfo, process_is_running
 
 if platform.system() != 'Windows':
@@ -23,7 +23,12 @@ _PRELOAD_EXTENSIONS = ('pg_textsearch',)
 
 def _preload_libraries_args() -> list:
     """ pg_ctl arguments adding the bundled extensions that need shared_preload_libraries. """
-    lib_dir = POSTGRES_BIN_PATH.parent / 'lib'
+    prefix = Path(pg_config(['--prefix']).strip())
+    lib_dir = Path(pg_config(['--pkglibdir']).strip())
+    try:
+        lib_dir = POSTGRES_BIN_PATH.parent / lib_dir.relative_to(prefix)
+    except ValueError:
+        pass
     libs = [name for name in _PRELOAD_EXTENSIONS if any(lib_dir.glob(f'{name}.*'))]
     if not libs:
         return []
