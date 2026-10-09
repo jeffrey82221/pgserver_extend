@@ -1,5 +1,6 @@
 name: Build and Test
 on:
+  pull_request:
   push:
     branches:
       - testing
@@ -96,7 +97,7 @@ jobs:
           path: wheelhouse/*.whl
           name: python-package-distributions
   publish-to-pypi:
-    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    if: ${{ startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request' }}
     name: Publish Python dist to PyPI
     needs:
       - build_wheels
