@@ -108,7 +108,7 @@ jobs:
         run: python -m pytest -s -v --log-cli-level=INFO tests
 
   # ---------------------------------------------------------------------------
-  # 3. Publish (not on pull requests)
+  # 2. Publish (not on pull requests)
   # ---------------------------------------------------------------------------
   publish-to-pypi:
     name: Publish Python dist to PyPI
