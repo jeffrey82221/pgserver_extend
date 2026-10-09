@@ -17,10 +17,11 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # 1. Build postgres + pgvector + AGE and package them into wheels
+  # 1. Per OS: build postgres + pgvector + AGE, package the wheel, then test it
+  #    (build and test share one job so each OS proceeds independently)
   # ---------------------------------------------------------------------------
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build and test wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -83,44 +84,27 @@ jobs:
           path: wheelhouse/*.whl
           overwrite: true
 
-  # ---------------------------------------------------------------------------
-  # 2. Install the built wheel into a clean environment and run the test-suite
-  # ---------------------------------------------------------------------------
-  test_wheels:
-    name: Test wheel on ${{ matrix.os }}
-    needs: build_wheels
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-26-intel, macos-26, ubuntu-latest, windows-2022]
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Download wheels built on ${{ matrix.os }}
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT_PREFIX }}-${{ matrix.os }}
-          path: wheelhouse/
-
-      # --no-index/--find-links makes pip pick the wheel built above that matches this python
+      # ---- test: install the wheel into a brand-new virtualenv and run pytest ----
+      # --no-index/--find-links makes pip pick the wheel built above that matches the venv's python
       # (never a copy from PyPI); the [test] extra is then resolved against PyPI.
-      - name: Install the wheel
+      # Tests run against the installed wheel: the sources in src/ are not importable from the venv.
+      - name: Create a clean virtualenv
+        shell: bash
         run: |
+          python -m venv "$RUNNER_TEMP/test-venv"
+          if [ -d "$RUNNER_TEMP/test-venv/Scripts" ]; then BIN=Scripts; else BIN=bin; fi
+          echo "$RUNNER_TEMP/test-venv/$BIN" >> "$GITHUB_PATH"
+
+      - name: Install the wheel into the virtualenv
+        shell: bash
+        run: |
+          which python
           python -m pip install --upgrade pip
           python -m pip install --no-index --no-deps --find-links wheelhouse pgserver-extend
           python -m pip install "pgserver-extend[test]"
 
-      # Tests run against the installed wheel: the checkout only provides tests/,
-      # the sources in src/ are not importable from there.
       - name: Run pytest
+        shell: bash
         run: python -m pytest -s -v --log-cli-level=INFO tests
 
   # ---------------------------------------------------------------------------
@@ -129,9 +113,7 @@ jobs:
   publish-to-pypi:
     name: Publish Python dist to PyPI
     if: ${{ github.event_name != 'pull_request' }}
-    needs:
-      - build_wheels
-      - test_wheels
+    needs: build_wheels
     runs-on: ubuntu-latest
     environment:
       name: pypi
