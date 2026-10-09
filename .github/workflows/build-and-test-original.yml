@@ -78,6 +78,8 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: pp* cp38-* cp3??t-* *-musllinux*
+          # AGE requires flex/bison/readline/zlib headers inside the manylinux container
+          CIBW_BEFORE_ALL_LINUX: yum install -y flex bison readline-devel zlib-devel && make
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment-target }}
         run: python -m cibuildwheel --output-dir wheelhouse
       - name: Save postgres build
