@@ -36,7 +36,6 @@ jobs:
           python-version: '3.10'
       - uses: actions/setup-python@v4
         if: matrix.os == 'ubuntu-latest'
-          # for testing due to docker env issues
         with:
           python-version: '3.9'
       - name: Install cibuildwheel
@@ -54,7 +53,7 @@ jobs:
             pgbuild
             src/pgserver/pginstall
           key: ${{ runner.os }}-${{ runner.arch }}-build-${{ env.cache-name }}-${{
-            hashFiles('Makefile', 'pgbuild/Makefile', '.github/workflows/build-and-test.yml') }}
+            hashFiles('Makefile', 'pgbuild/Makefile', '.github/workflows/build-and-test-original.yml') }}
       - name: Build postgres and pgvector
         if: ${{ matrix.os != 'ubuntu-latest' && ! steps.restore-postgres.outputs.cache-hit }}
         env:
@@ -73,7 +72,7 @@ jobs:
            pgbuild
            src/pgserver/pginstall
           key: ${{ runner.os }}-${{ runner.arch }}-build-${{ env.cache-name }}-${{
-            hashFiles('Makefile', 'pgbuild/Makefile', '.github/workflows/build-and-test.yml') }}
+            hashFiles('Makefile', 'pgbuild/Makefile', '.github/workflows/build-and-test-original.yml') }}
       - name: Build wheels
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
