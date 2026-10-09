@@ -51,6 +51,8 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade cibuildwheel
 
+      # ---- Rust toolchain (pgvectorscale is built with cargo-pgrx); preinstalled on macOS runners ----
+      # pgsql-http needs libcurl (ships with macOS); the Linux build installs it in the container.
       # ---- macOS / Windows: build natively so failures show up early ----
       # On Linux cibuildwheel builds inside a manylinux docker container (see CIBW_BEFORE_ALL_LINUX).
       - name: Build PostgreSQL and supported extensions
@@ -68,8 +70,12 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: pp* cp38-* cp3??t-* *-musllinux*
-          # AGE needs flex/bison/readline/zlib inside the manylinux container
-          CIBW_BEFORE_ALL_LINUX: yum install -y flex bison readline-devel zlib-devel && make
+          # Inside the manylinux container: AGE needs flex/bison/readline/zlib, pgsql-http needs libcurl,
+          # pgvectorscale needs clang + a rust toolchain (cargo-pgrx is installed by the Makefile)
+          CIBW_BEFORE_ALL_LINUX: >
+            yum install -y flex bison readline-devel zlib-devel libcurl-devel openssl-devel clang
+            && curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal
+            && make
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment-target }}
         run: python -m cibuildwheel --output-dir wheelhouse
 
