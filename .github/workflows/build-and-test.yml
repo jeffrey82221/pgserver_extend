@@ -66,8 +66,8 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install winflexbison --yes --no-progress
-          echo "BISON=win_bison" >> "$GITHUB_ENV"
-          echo "FLEX=win_flex" >> "$GITHUB_ENV"
+          Add-Content -Path $env:GITHUB_ENV -Value "BISON=win_bison"
+          Add-Content -Path $env:GITHUB_ENV -Value "FLEX=win_flex"
 
       # ---- macOS / Windows: build natively so failures show up early ----
       # On Linux cibuildwheel builds inside a manylinux docker container (see CIBW_BEFORE_ALL_LINUX).
