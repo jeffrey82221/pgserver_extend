@@ -17,6 +17,18 @@ if platform.system() != 'Windows':
 
 _logger = logging.getLogger('pgserver')
 
+# extensions that refuse to load unless listed in shared_preload_libraries
+_PRELOAD_EXTENSIONS = ('pg_textsearch',)
+
+
+def _preload_libraries_args() -> list:
+    """ pg_ctl arguments adding the bundled extensions that need shared_preload_libraries. """
+    lib_dir = POSTGRES_BIN_PATH.parent / 'lib'
+    libs = [name for name in _PRELOAD_EXTENSIONS if any(lib_dir.glob(f'{name}.*'))]
+    if not libs:
+        return []
+    return ['-o', f'-c shared_preload_libraries={",".join(libs)}']
+
 class PostgresServer:
     """ Provides a common interface for interacting with a server.
     """
@@ -156,6 +168,7 @@ class PostgresServer:
                 pg_ctl_args = ['-w',  # wait for server to start
                         '-o', '-h ""',  # no listening on any IP addresses (forwarded to postgres exec) see man postgres for -hj
                         '-o',  f'-k {socket_dir}', # socket option (forwarded to postgres exec) see man postgres for -k
+                        *_preload_libraries_args(),
                         '-l', str(self.log), # log location: set to pgdata dir also
                         'start' # action
                 ]
@@ -167,6 +180,7 @@ class PostgresServer:
                 pg_ctl_args = ['-w',  # wait for server to start
                         '-o', f'-h "{host}"',
                         '-o', f'-p {port}',
+                        *_preload_libraries_args(),
                         '-l', str(self.log), # log location: set to pgdata dir also
                         'start' # action
                 ]

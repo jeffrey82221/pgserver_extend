@@ -2,7 +2,7 @@ SHELL := /bin/bash
 INSTALL_PREFIX := $(shell pwd)/../src/pgserver/pginstall/
 BUILD := $(shell pwd)/pgbuild/
 
-POSTGRES_VERSION := 16.2
+POSTGRES_VERSION := 18.6
 PG_MAJOR := $(firstword $(subst ., ,$(POSTGRES_VERSION)))
 IS_MUSL ?= $(shell if command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; then echo 1; else echo 0; fi)
 
@@ -10,7 +10,7 @@ IS_MUSL ?= $(shell if command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | gre
 #  - AGE's documented native build platforms are Linux and macOS.
 #  - pgsql-http needs libcurl; pgvectorscale needs cargo-pgrx (not supported on Windows/musl).
 # Elsewhere: pgvector, AGE and pgsql-http; plus the cargo-pgrx based pgvectorscale (not on musl)
-# and pg_textsearch (supports PostgreSQL >= 17 only, so skipped for this postgres version).
+# and pg_textsearch (PostgreSQL >= 17 only, skipped on older versions).
 ifeq ($(OS),Windows_NT)
 EXTENSIONS ?= pgvector
 else
@@ -61,7 +61,7 @@ $(INSTALL_PREFIX)/bin/postgres: $(POSTGRES_BLD)/config.status
 postgres: $(INSTALL_PREFIX)/bin/postgres
 
 ### pgvector
-PGVECTOR_TAG := v0.8.0
+PGVECTOR_TAG := v0.8.1
 PGVECTOR_URL := https://github.com/pgvector/pgvector/archive/refs/tags/$(PGVECTOR_TAG).tar.gz
 PGVECTOR_DIR := pgvector-$(PGVECTOR_TAG)
 
@@ -84,8 +84,8 @@ $(INSTALL_PREFIX)/lib/vector.so: $(PGVECTOR_DIR)/Makefile $(INSTALL_PREFIX)/bin/
 pgvector: postgres $(INSTALL_PREFIX)/lib/vector.so
 
 ### age
-AGE_TAG := v1.5.0
-AGE_URL := https://github.com/apache/age/archive/refs/tags/PG16/$(AGE_TAG)-rc0.tar.gz
+AGE_TAG := v1.7.0
+AGE_URL := https://github.com/apache/age/archive/refs/tags/PG$(PG_MAJOR)/$(AGE_TAG)-rc0.tar.gz
 AGE_DIR := age-$(AGE_TAG)
 $(AGE_DIR).tar.gz:
 	curl -L -o $(AGE_DIR).tar.gz $(AGE_URL)
