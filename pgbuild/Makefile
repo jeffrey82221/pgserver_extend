@@ -20,15 +20,9 @@ $(POSTGRES_SRC)/configure: $(POSTGRES_SRC).tar.gz
 	touch $(POSTGRES_SRC)/configure
 
 ## configure
-# macOS SDKs declare strchrnul (macOS 15.4+), which fails to compile under older deployment targets;
-# and rename it so postgres builds its own replacement (src/port/strchrnul.c) instead
-ifeq ($(shell uname -s),Darwin)
-POSTGRES_CONFIGURE_ENV := ac_cv_func_strchrnul=no CPPFLAGS="-Dstrchrnul=pg_strchrnul"
-endif
-
 $(POSTGRES_BLD)/config.status: $(POSTGRES_SRC)/configure
 	mkdir -p $(POSTGRES_BLD)
-	cd $(POSTGRES_BLD) && $(POSTGRES_CONFIGURE_ENV) ../$(POSTGRES_SRC)/configure --prefix=$(INSTALL_PREFIX) --without-readline --without-icu
+	cd $(POSTGRES_BLD) && ../$(POSTGRES_SRC)/configure --prefix=$(INSTALL_PREFIX) --without-readline --without-icu
 
 ## build
 # https://stackoverflow.com/questions/68379786/
