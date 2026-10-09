@@ -62,6 +62,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade cibuildwheel
 
+      - name: Install PostgreSQL parser generators (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install winflexbison --yes --no-progress
+          echo "BISON=win_bison" >> "$GITHUB_ENV"
+          echo "FLEX=win_flex" >> "$GITHUB_ENV"
+
       # ---- macOS / Windows: build natively so failures show up early ----
       # On Linux cibuildwheel builds inside a manylinux docker container (see CIBW_BEFORE_ALL_LINUX).
       - name: Build PostgreSQL and supported extensions
