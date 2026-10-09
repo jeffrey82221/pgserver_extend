@@ -3,7 +3,12 @@ INSTALL_PREFIX := $(shell pwd)/../src/pgserver/pginstall/
 BUILD := $(shell pwd)/pgbuild/
 
 .PHONY: all
+# AGE uses POSIX-only APIs (strndup, clock_gettime) and does not build on Windows (MinGW)
+ifeq ($(OS),Windows_NT)
+all: pgvector postgres
+else
 all: pgvector age postgres
+endif
 
 ### postgres
 POSTGRES_VERSION := 16.2
