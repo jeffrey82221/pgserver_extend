@@ -30,10 +30,10 @@ jobs:
         include:
           - os: macos-26-intel
             arch: x86_64
-            deployment-target: '26.0'
+            deployment-target: '10.9'
           - os: macos-26
             arch: arm64
-            deployment-target: '26.0'
+            deployment-target: '11.0'
           - os: ubuntu-latest
             arch: x86_64
             deployment-target: ''
