@@ -20,9 +20,9 @@ import os
 
 def test_preload_libraries_args_uses_postgres_library_directory(tmp_path, monkeypatch):
     configured_prefix = tmp_path / 'build' / 'pginstall'
-    lib_dir = configured_prefix / 'lib' / 'postgresql' / '16'
+    lib_dir = configured_prefix / 'lib'
     installed_prefix = tmp_path / 'installed' / 'pginstall'
-    installed_lib_dir = installed_prefix / 'lib' / 'postgresql' / '16'
+    installed_lib_dir = installed_prefix / 'lib'
     installed_lib_dir.mkdir(parents=True)
     (installed_lib_dir / 'pg_textsearch.so').touch()
     monkeypatch.setattr(postgres_server, 'POSTGRES_BIN_PATH', installed_prefix / 'bin')
