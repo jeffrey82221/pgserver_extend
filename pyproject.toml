@@ -1,6 +1,6 @@
 [project]
 name = "pgserver-extend" # Required
-version = "0.0.1"  # Required
+version = "0.0.2"  # Required
 description = "Self-contained postgres server for your python applications" # Required
 readme = "README.md" # Optional
 requires-python = ">=3.9"
@@ -20,8 +20,9 @@ dev = [
 ]
 test = [
     "pytest",
+    "pytest-timeout",
     "psycopg2-binary",
-    "sqlalchemy>=2",
+    "sqlalchemy~=2.0.9",
     "sqlalchemy-utils"
 ]
 
@@ -31,6 +32,8 @@ include = ["pgserver*"]  # package names should match these glob patterns (["*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# fail (with a stack dump of the hanging test) instead of hanging the CI job forever
+timeout = 300
 
 [tool.cibuildwheel]
 before-all = "make"
