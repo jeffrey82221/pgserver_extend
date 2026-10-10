@@ -20,7 +20,9 @@ def require_extension(tmp_postgres):
         count = tmp_postgres.psql(
             f"SELECT count(*) FROM pg_available_extensions WHERE name = '{name}';")
         if count.split()[-3] == "0":
-            pytest.skip(f"extension {name} is not built for this platform / postgres version")
+            if sys.platform == "win32":
+                pytest.skip(f"extension {name} is not built for Windows")
+            pytest.fail(f"expected extension {name} is missing from this wheel")
     return _require
 
 
