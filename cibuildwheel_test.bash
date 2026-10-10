@@ -1,13 +1,9 @@
 #! /bin/bash
+# Run by cibuildwheel inside each wheel build. Any failure must fail the build:
+#  -x stops at the first failing test, the exit code of pytest is propagated.
+set -euo pipefail
 PROJECT=$1
 
 echo "Running on OSTYPE=$OSTYPE with UID=$UID"
 
-case "$OSTYPE" in
-    # linux *)
-    #     echo "Tests disabled on the manylinux docker container for now"
-    #     ;;
-    *)
-        pytest -s -v --log-cli-level=INFO $PROJECT/tests
-        ;;
-esac
+pytest -x -v -ra --tb=short -o log_cli=true --log-cli-level=WARNING "$PROJECT/tests"

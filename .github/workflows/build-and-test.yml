@@ -114,6 +114,7 @@ jobs:
           PY313: ${{ steps.py313.outputs.python-path }}
           PY314: ${{ steps.py314.outputs.python-path }}
         run: |
+          set -euo pipefail   # any failing command (incl. pytest) stops the step and fails the job
           for PYV in 311 312 313 314; do
             echo "::group::python ${PYV}"
             PYVAR="PY${PYV}"
@@ -124,7 +125,8 @@ jobs:
             "$BIN/python" -m pip install --upgrade pip
             "$BIN/python" -m pip install --no-index --no-deps --find-links wheelhouse pgserver-extend
             "$BIN/python" -m pip install "pgserver-extend[test]"
-            "$BIN/python" -m pytest -s -v --log-cli-level=INFO tests
+            # -x: stop at the first failure; WARNING+ live logs (INFO is very noisy, failed tests still show captured logs)
+            "$BIN/python" -m pytest -x -v -ra --tb=short -o log_cli=true --log-cli-level=WARNING tests
             echo "::endgroup::"
           done
 
