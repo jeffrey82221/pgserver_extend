@@ -21,14 +21,15 @@ def tmp_postgres(request):
 
 @pytest.fixture
 def require_extension(tmp_postgres):
-    """ Returns a function that skips the test when the extension was not built into this wheel
-    (e.g. AGE / pgsql-http / pgvectorscale on Windows, pg_textsearch on postgres < 17). """
+    """Returns a function that skips tests for extensions not built into this wheel."""
     def _require(name: str) -> None:
         count = tmp_postgres.psql(
             f"SELECT count(*) FROM pg_available_extensions WHERE name = '{name}';")
         if count.split()[-3] == "0":
             if sys.platform == "win32":
                 pytest.skip(f"extension {name} is not built for Windows")
+            if sys.platform == "darwin" and name == "http":
+                pytest.skip("extension http is not built for macOS")
             pytest.fail(f"expected extension {name} is missing from this wheel")
     return _require
 

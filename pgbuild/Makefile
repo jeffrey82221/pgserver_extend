@@ -14,7 +14,10 @@ IS_MUSL ?= $(shell if command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | gre
 ifeq ($(OS),Windows_NT)
 EXTENSIONS ?= pgvector
 else
-EXTENSIONS ?= pgvector age pgsql_http
+EXTENSIONS ?= pgvector age
+ifneq ($(shell uname -s),Darwin)
+EXTENSIONS += pgsql_http
+endif
 ifneq ($(IS_MUSL),1)
 EXTENSIONS += pgvectorscale
 endif
