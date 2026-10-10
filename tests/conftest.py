@@ -6,10 +6,17 @@ import pgserver
 
 
 @pytest.fixture
-def tmp_postgres():
+def tmp_postgres(request):
     tmp_pg_data = tempfile.mkdtemp()
     with pgserver.get_server(tmp_pg_data, cleanup_mode='delete') as pg:
         yield pg
+        rep = getattr(request.node, "rep_call", None)
+        if rep is not None and rep.failed:
+            try:
+                lines = pg.log.read_text().splitlines()[-60:]
+                print("\n=== postgres server log (last 60 lines) ===\n" + "\n".join(lines))
+            except Exception as err:  # never mask the real failure
+                print(f"could not read postgres server log: {err}")
 
 
 @pytest.fixture
@@ -31,18 +38,3 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
     setattr(item, f"rep_{rep.when}", rep)
-
-
-@pytest.fixture(autouse=True)
-def _dump_server_log_on_failure(request):
-    """ When a test fails, print the tail of the log of every server it used. """
-    yield
-    rep = getattr(request.node, "rep_call", None)
-    if rep is None or not rep.failed or "tmp_postgres" not in request.fixturenames:
-        return
-    pg = request.getfixturevalue("tmp_postgres")
-    try:
-        lines = pg.log.read_text().splitlines()[-60:]
-        print("\n=== postgres server log (last 60 lines) ===\n" + "\n".join(lines))
-    except Exception as err:  # never mask the real failure
-        print(f"could not read postgres server log: {err}")
