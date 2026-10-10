@@ -8,7 +8,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-darkblue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI Package](https://img.shields.io/pypi/v/pgserver?color=darkorange)](https://pypi.org/project/pgserver)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/pgserver)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/pgserver-extend)
 
 
 <p align="center">
