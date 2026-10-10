@@ -15,9 +15,7 @@ ifeq ($(OS),Windows_NT)
 EXTENSIONS ?= pgvector
 else
 EXTENSIONS ?= pgvector age
-ifneq ($(shell uname -s)-$(shell uname -m),Darwin-x86_64)
 EXTENSIONS += pgsql_http
-endif
 ifneq ($(IS_MUSL),1)
 EXTENSIONS += pgvectorscale
 endif
@@ -121,10 +119,16 @@ $(PGSQL_HTTP_DIR)/Makefile: $(PGSQL_HTTP_DIR).tar.gz
 	tar xzf $(PGSQL_HTTP_DIR).tar.gz -C $(PGSQL_HTTP_DIR) --strip-components=1
 	touch $(PGSQL_HTTP_DIR)/Makefile
 
+# On macOS link against the system libcurl, not Homebrew's: its dylibs target the runner's OS and
+# would exceed the wheel's MACOSX_DEPLOYMENT_TARGET.
+ifeq ($(shell uname -s),Darwin)
+PGSQL_HTTP_CURL_CONFIG := CURL_CONFIG=/usr/bin/curl-config
+endif
+
 $(INSTALL_PREFIX)/lib/http.so: $(PGSQL_HTTP_DIR)/Makefile $(INSTALL_PREFIX)/bin/postgres
 	unset MAKELEVEL && unset MAKEFLAGS && unset MFLAGS \
-		&& $(MAKE) -C $(PGSQL_HTTP_DIR) PG_CONFIG=$(INSTALL_PREFIX)/bin/pg_config -j \
-		&& $(MAKE) -C $(PGSQL_HTTP_DIR) PG_CONFIG=$(INSTALL_PREFIX)/bin/pg_config install
+		&& $(MAKE) -C $(PGSQL_HTTP_DIR) $(PGSQL_HTTP_CURL_CONFIG) PG_CONFIG=$(INSTALL_PREFIX)/bin/pg_config -j \
+		&& $(MAKE) -C $(PGSQL_HTTP_DIR) $(PGSQL_HTTP_CURL_CONFIG) PG_CONFIG=$(INSTALL_PREFIX)/bin/pg_config install
 
 .PHONY: pgsql_http
 pgsql_http: postgres $(INSTALL_PREFIX)/lib/http.so

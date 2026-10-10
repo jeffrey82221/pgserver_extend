@@ -30,7 +30,7 @@ jobs:
         include:
           - os: macos-26-intel
             arch: x86_64
-            deployment-target: '10.9'
+            deployment-target: '14.0'
           - os: macos-26
             arch: arm64
             deployment-target: '11.0'
