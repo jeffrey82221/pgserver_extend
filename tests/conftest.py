@@ -1,3 +1,4 @@
+import platform
 import sys
 import tempfile
 
@@ -28,8 +29,8 @@ def require_extension(tmp_postgres):
         if count.split()[-3] == "0":
             if sys.platform == "win32":
                 pytest.skip(f"extension {name} is not built for Windows")
-            if sys.platform == "darwin" and name == "http":
-                pytest.skip("extension http is not built for macOS")
+            if sys.platform == "darwin" and platform.machine() == "x86_64" and name == "http":
+                pytest.skip("extension http is not built for Intel macOS")
             pytest.fail(f"expected extension {name} is missing from this wheel")
     return _require
 

@@ -15,7 +15,7 @@ ifeq ($(OS),Windows_NT)
 EXTENSIONS ?= pgvector
 else
 EXTENSIONS ?= pgvector age
-ifneq ($(shell uname -s),Darwin)
+ifneq ($(shell uname -s)-$(shell uname -m),Darwin-x86_64)
 EXTENSIONS += pgsql_http
 endif
 ifneq ($(IS_MUSL),1)
