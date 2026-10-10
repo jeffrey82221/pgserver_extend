@@ -23,7 +23,7 @@ _PRELOAD_EXTENSIONS = ('pg_textsearch',)
 
 def _preload_libraries_args() -> list:
     """ pg_ctl arguments adding the bundled extensions that need shared_preload_libraries. """
-    prefix = Path(pg_config(['--prefix']).strip())
+    prefix = Path(pg_config(['--bindir']).strip()).parent
     lib_dir = Path(pg_config(['--pkglibdir']).strip())
     try:
         lib_dir = POSTGRES_BIN_PATH.parent / lib_dir.relative_to(prefix)
