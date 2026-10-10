@@ -1,4 +1,4 @@
-![Python Version](https://img.shields.io/badge/python-3.9%2C%203.10%2C%203.11%2C%203.12-blue)
+![Python Version](https://img.shields.io/badge/python-3.9%20to%203.15-blue)
 ![Postgres Version](https://img.shields.io/badge/PostgreSQL-18.6-blue)
 
 ![Linux Support](https://img.shields.io/badge/Linux%20Support-manylinux-green)
@@ -25,6 +25,18 @@ To achieve this, you need two things which `pgserver` provides
   * convenience python methods that handle db initialization and server process management, that deals with things that would normally prevent you from running your python app seamlessly on environments like docker containers, a machine you have no root access in, machines with other running postgres servers, google colab, etc.  One main goal of the project is robustness around this.
 
 Additionally, this package includes the [pgvector](https://github.com/pgvector/pgvector) postgres extension, useful for storing associated vector data and for vector similarity queries.
+
+## Supported platforms, Python versions and Postgres extensions
+Wheels bundle PostgreSQL 18.6. Data below comes from the CI workflow (`.github/workflows/build-and-test.yml`), which builds each wheel and runs the pytest suite against it.
+
+| Platform | Minimum OS (wheel tag) | Python versions | pgvector | Apache AGE | pgsql-http | pgvectorscale | pg_textsearch |
+|---|---|---|:-:|:-:|:-:|:-:|:-:|
+| Linux x86_64 | glibc ≥ 2.28 (`manylinux_2_28_x86_64`) | 3.9 – 3.15 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| macOS Apple Silicon | macOS ≥ 11.0 (`macosx_11_0_arm64`) | 3.9 – 3.15 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| macOS Intel | macOS ≥ 14.0 (`macosx_14_0_x86_64`) | 3.9 – 3.15 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Windows x86_64 | `win_amd64` | 3.9 – 3.15 | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+Notes: ❌ means the extension is not built for that platform. Python 3.15 is a release candidate in CI. Not built: Python 3.8, PyPy, free-threaded builds, musllinux, 32-bit and Windows ARM. CI runs on the newest runner images only (ubuntu-latest, macos-26, macos-26-intel, windows-2022).
 
 ## Basic summary:
 * _Pip installable binaries_: built and tested on Manylinux, MacOS and Windows.
