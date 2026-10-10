@@ -20,6 +20,7 @@ dev = [
 ]
 test = [
     "pytest",
+    "pytest-timeout",
     "psycopg2-binary",
     "sqlalchemy~=2.0.9",
     "sqlalchemy-utils"
@@ -31,6 +32,8 @@ include = ["pgserver*"]  # package names should match these glob patterns (["*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# fail (with a stack dump of the hanging test) instead of hanging the CI job forever
+timeout = 300
 
 [tool.cibuildwheel]
 before-all = "make"

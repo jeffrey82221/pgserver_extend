@@ -23,6 +23,7 @@ jobs:
   build_wheels:
     name: Build and test wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 120   # a hung build/test must fail, not block the run for 6 hours
     strategy:
       fail-fast: false
       matrix:
