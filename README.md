@@ -15,16 +15,20 @@
   <img src="https://raw.githubusercontent.com/orm011/pgserver/main/pgserver_square_small.png"/>
 </p>
 
-# pgserver: pip-installable, embedded postgres server + pgvector extension for your python app
+# pgserver-extend: pip-installable embedded PostgreSQL server with useful extensions for Python apps
 
-`pgserver` lets you build Postgres-backed python apps with the same convenience afforded by an embedded database (ie, alternatives such as sqlite). 
-If you build your app with pgserver, your app remains wholly pip-installable, saving your users from needing to understand how to setup a postgres server (they simply pip install your app, and postgres is brought in through dependencies), and letting you get started developing quickly: just `pip install pgserver` and `pgserver.get_server(...)`, as shown in this notebook: <a target="_blank" href="https://colab.research.google.com/github/orm011/pgserver/blob/master/pgserver-example.ipynb"> <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/> </a> 
+`pgserver-extend` is a fork of the original `pgserver` project. It keeps the embedded PostgreSQL workflow that makes local Postgres easy to use from Python, while broadening the set of bundled PostgreSQL extensions beyond `pgvector` alone.
 
-To achieve this, you need two things which `pgserver` provides
-  * python binary wheels for multiple-plaforms with postgres binaries
-  * convenience python methods that handle db initialization and server process management, that deals with things that would normally prevent you from running your python app seamlessly on environments like docker containers, a machine you have no root access in, machines with other running postgres servers, google colab, etc.  One main goal of the project is robustness around this.
+This package is designed for Python apps that want a self-contained, pip-installable PostgreSQL runtime without requiring users to manage a system Postgres installation. The goal is the same convenience as an embedded database (for example, SQLite), while providing a more featureful Postgres environment for application work.
 
-Additionally, this package includes the [pgvector](https://github.com/pgvector/pgvector) postgres extension, useful for storing associated vector data and for vector similarity queries.
+If you are familiar with the original `pgserver` project, this repository is the forked variant that adds more useful extensions and keeps the same embedded-server workflow. The Python API remains compatible with the `pgserver` module name in this codebase, but the project itself is `pgserver-extend` rather than the original upstream project.
+
+To achieve this, `pgserver-extend` provides:
+  * Python binary wheels for multiple platforms with bundled PostgreSQL binaries
+  * convenience Python methods that initialize the database and manage the server lifecycle, including edge cases such as Docker, constrained environments, Google Colab, port conflicts, and existing PostgreSQL instances
+  * a set of bundled PostgreSQL extensions for application development, not only [pgvector](https://github.com/pgvector/pgvector) but also useful extensions such as Apache AGE, pgsql-http, pgvectorscale, and pg_textsearch
+
+This package is not a rebranding of the original `pgserver`; it is a forked, extended version that builds on the upstream work while adding additional embedded Postgres capabilities.
 
 ## Supported platforms, Python versions and Postgres extensions
 Wheels bundle PostgreSQL 18.6. Data below comes from the CI workflow (`.github/workflows/build-and-test.yml`), which builds each wheel and runs the pytest suite against it.
@@ -39,33 +43,36 @@ Wheels bundle PostgreSQL 18.6. Data below comes from the CI workflow (`.github/w
 Notes: ❌ means the extension is not built for that platform. Python 3.15 is a release candidate in CI. Not built: Python 3.8, PyPy, free-threaded builds, musllinux, 32-bit and Windows ARM. CI runs on the newest runner images only (ubuntu-latest, macos-26, macos-26-intel, windows-2022).
 
 ## Basic summary:
-* _Pip installable binaries_: built and tested on Manylinux, MacOS and Windows.
-* _No sudo or admin rights needed_: Does not require `root` privileges or `sudo`.
-* but... _can handle root_: in some environments your python app runs as root, eg docker, google colab, `pgserver` handles this case.
-* _Simpler initialization_: `pgserver.get_server(MY_DATA_DIR)` method to initialize data and server if needed, so you don't need to understand `initdb`, `pg_ctl`, port conflicts.
-* _Convenient cleanup_: server process cleanup is done for you: when the process using pgserver ends, the server is shutdown, including when multiple independent processes call
-`pgserver.get_server(MY_DATA_DIR)` on the same dir (wait for last one). You can blow away your PGDATA dir and start again.
-* For lower-level control, wrappers to all binaries, such as `initdb`, `pg_ctl`, `psql`, `pg_config`. Includes header files in case you wish to build some other extension and use it against these binaries.
+* _Pip-installable binaries_: built and tested on manylinux, macOS, and Windows.
+* _No sudo or admin rights needed_: does not require `root` privileges or `sudo`.
+* but... _can handle root_: in some environments your Python app runs as root, for example Docker or Google Colab; `pgserver-extend` handles this case.
+* _Simpler initialization_: `pgserver.get_server(MY_DATA_DIR)` initializes the data directory and starts the server when needed, so you do not need to understand `initdb`, `pg_ctl`, or port conflicts.
+* _Convenient cleanup_: server-process cleanup is handled for you. When the process using the embedded server ends, the server shuts down, including when multiple independent processes call `pgserver.get_server(MY_DATA_DIR)` on the same data directory; the last process cleans up.
+* For lower-level control, wrappers to binaries such as `initdb`, `pg_ctl`, `psql`, and `pg_config` are included, along with headers for building additional extensions against the bundled PostgreSQL.
 
 ```py
-# Example 1: postgres backed application
+# Example 1: Postgres-backed application
 import pgserver
 
+# pgserver-extend is a fork of pgserver, but the Python API is exposed through the
+# pgserver module in this codebase.
 db = pgserver.get_server(MYPGDATA)
 # server ready for connection.
 
 print(db.psql('create extension vector'))
 db_uri = db.get_uri()
-# use uri with sqlalchemy / psycopg, etc, see colab.
+# use uri with SQLAlchemy / psycopg, etc.
 
-# if no other process is using this server, it will be shutdown at exit,
-# if other process use same pgadata, server process will be shutdown when all stop.
+# if no other process is using this server, it will shut down at exit.
+# if other processes are using the same PGDATA directory, the server will stay
+# alive until the last one exits.
 ```
 
 ```py
 # Example 2: Testing
 import tempfile
 import pytest
+
 @pytest.fixture
 def tmp_postgres():
     tmp_pg_data = tempfile.mkdtemp()
@@ -74,11 +81,9 @@ def tmp_postgres():
     pg.cleanup()
 ```
 
-Postgres binaries in the package can be found in the directory pointed
-to by the `pgserver.POSTGRES_BIN_PATH` to be used directly.
+Postgres binaries in the package can be found in the directory pointed to by `pgserver.POSTGRES_BIN_PATH` and used directly.
 
-This project was originally based on [](https://github.com/michelp/postgresql-wheel), which provides a linux wheel.
-But adds the following differences:
-1. binary wheels for multiple platforms (ubuntu x86, MacOS apple silicon, MacOS x86, Windows)
-2. postgres python management: cross-platfurm startup and cleanup including many edge cases, runs on colab etc.
-3. includes `pgvector` extension but currently excludes `postGIS`
+This project is a fork of `pgserver`, originally based on [](https://github.com/michelp/postgresql-wheel), which provides a Linux wheel. The fork adds the following differences:
+1. binary wheels for multiple platforms (Ubuntu x86_64, macOS Apple Silicon, macOS x86_64, Windows)
+2. PostgreSQL Python management for cross-platform startup and cleanup, including many edge cases such as Colab and other constrained environments
+3. a broader set of bundled extensions, including `pgvector` and several other useful PostgreSQL extensions, while still excluding `postGIS`
